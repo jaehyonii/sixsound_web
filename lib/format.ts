@@ -39,3 +39,13 @@ export function toDateInput(date: Date | string | null | undefined): string {
   }).format(d);
   return parts; // en-CA → "YYYY-MM-DD"
 }
+
+// 카드/메타용 점 구분 날짜. KST 기준 "YYYY.MM.DD".
+export function formatDateDot(date: Date | string): string {
+  return toDateInput(date).replace(/-/g, ".");
+}
+
+// 공지 리스트용 "MM.DD".
+export function formatMonthDay(date: Date | string): string {
+  return toDateInput(date).slice(5).replace("-", ".");
+}
