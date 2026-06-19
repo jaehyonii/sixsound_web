@@ -1,0 +1,95 @@
+// 여섯소리(sixsound) 데이터 모델
+// 영상은 sourceType/sourceRef로 "어디서 재생하느냐"를 분리해 차후 교체가 쉽도록 설계한다.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// 운영진 계정 (관리자 로그인)
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  createdAt    DateTime @default(now())
+}
+
+/// 연주회(이벤트). 한 연주회에 여러 곡 영상(Video)이 달린다.
+model Concert {
+  id          String   @id @default(cuid())
+  title       String
+  performedAt DateTime // 연주 일자
+  venue       String? // 장소
+  description String? // 소개
+  posterUrl   String? // 포스터 이미지 경로
+  videos      Video[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([performedAt])
+}
+
+/// 영상 소스 종류 (재생 추상화의 핵심)
+enum VideoSourceType {
+  YOUTUBE // sourceRef = YouTube video id
+  FILE // sourceRef = 자체 호스팅 파일 경로 (미래)
+  EXTERNAL // sourceRef = 외부 재생 URL (미래)
+}
+
+/// 개별 연주 영상
+model Video {
+  id           String          @id @default(cuid())
+  concertId    String
+  concert      Concert         @relation(fields: [concertId], references: [id], onDelete: Cascade)
+  title        String // 영상 제목
+  performers   String? // 연주자
+  pieceTitle   String? // 곡명
+  composer     String? // 작곡가
+  sourceType   VideoSourceType @default(YOUTUBE)
+  sourceRef    String // YouTube id / 파일 경로 / 외부 URL
+  thumbnailUrl String? // 비우면 sourceType에서 자동 유도
+  sortOrder    Int             @default(0)
+  createdAt    DateTime        @default(now())
+
+  @@index([concertId])
+}
+
+/// 공지사항 / 일정
+model Notice {
+  id        String    @id @default(cuid())
+  title     String
+  content   String
+  eventDate DateTime? // 일정이 있는 공지면 날짜
+  isPinned  Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([createdAt])
+}
+
+/// 부원 (기수별)
+model Member {
+  id         String   @id @default(cuid())
+  name       String
+  generation Int // 기수
+  part       String? // 역할/파트
+  bio        String?
+  photoUrl   String?
+  isActive   Boolean  @default(true) // 활동 / 졸업 구분
+  sortOrder  Int      @default(0)
+  createdAt  DateTime @default(now())
+
+  @@index([generation])
+}
+
+/// 동아리 소개 (단일 레코드, id = "about")
+model AboutContent {
+  id        String   @id @default("about")
+  body      String   @default("")
+  updatedAt DateTime @updatedAt
+}

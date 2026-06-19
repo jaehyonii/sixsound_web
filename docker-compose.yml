@@ -1,0 +1,41 @@
+# 여섯소리 웹 - 자체 서버 배포용
+# 사용: `cp .env.example .env` 로 값 채운 뒤 `docker compose up -d --build`
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-sixsound}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-sixsound}
+      POSTGRES_DB: ${POSTGRES_DB:-sixsound}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-sixsound}"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  app:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-sixsound}:${POSTGRES_PASSWORD:-sixsound}@db:5432/${POSTGRES_DB:-sixsound}?schema=public
+      AUTH_SECRET: ${AUTH_SECRET}
+      AUTH_TRUST_HOST: "true"
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@sixsound.org}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-changeme1234}
+      ADMIN_NAME: ${ADMIN_NAME:-운영진}
+    ports:
+      # 호스트포트:컨테이너포트. 호스트 3000이 사용 중이면 APP_PORT로 바꾼다.
+      - "${APP_PORT:-3000}:3000"
+    volumes:
+      # 업로드 이미지 영속화
+      - uploads:/app/public/uploads
+
+volumes:
+  db_data:
+  uploads:
