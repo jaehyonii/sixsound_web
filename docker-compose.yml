@@ -8,6 +8,11 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-sixsound}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-sixsound}
       POSTGRES_DB: ${POSTGRES_DB:-sixsound}
+    networks:
+      # 고유 별칭. be_default에도 'db' 서비스(SyncLog)가 있어 이름 충돌을 피한다.
+      default:
+        aliases:
+          - sixsound-db
     volumes:
       - db_data:/var/lib/postgresql/data
     healthcheck:
@@ -23,18 +28,30 @@ services:
       db:
         condition: service_healthy
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER:-sixsound}:${POSTGRES_PASSWORD:-sixsound}@db:5432/${POSTGRES_DB:-sixsound}?schema=public
+      DATABASE_URL: postgresql://${POSTGRES_USER:-sixsound}:${POSTGRES_PASSWORD:-sixsound}@sixsound-db:5432/${POSTGRES_DB:-sixsound}?schema=public
       AUTH_SECRET: ${AUTH_SECRET}
       AUTH_TRUST_HOST: "true"
       ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@sixsound.org}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-changeme1234}
       ADMIN_NAME: ${ADMIN_NAME:-운영진}
     ports:
-      # 호스트포트:컨테이너포트. 호스트 3000이 사용 중이면 APP_PORT로 바꾼다.
-      - "${APP_PORT:-3000}:3000"
+      # 디버그용으로 호스트 로컬에만 노출(외부 노출은 Caddy가 담당). 3000은 다른 앱이 점유.
+      - "127.0.0.1:${APP_PORT:-3100}:3000"
+    networks:
+      # 자체 네트워크(db 접근) + Caddy가 붙어 있는 be_default(리버스 프록시)
+      default: {}
+      proxy:
+        aliases:
+          - sixsound-app
     volumes:
       # 업로드 이미지 영속화
       - uploads:/app/public/uploads
+
+networks:
+  # be(SyncLog) compose가 만든 네트워크. Caddy(be-caddy-1)가 여기 붙어 있다.
+  proxy:
+    external: true
+    name: be_default
 
 volumes:
   db_data:
