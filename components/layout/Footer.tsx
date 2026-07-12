@@ -7,17 +7,12 @@ export function Footer() {
         <div className="flex flex-wrap items-start justify-between gap-10">
           <div className="max-w-[34ch]">
             <div className="mb-4 flex items-center gap-2.5">
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 40 40"
-                fill="none"
-                aria-hidden="true"
-              >
-                <circle cx="20" cy="20" r="18.5" stroke="#c08a45" strokeWidth="1.4" />
-                <circle cx="20" cy="20" r="12.5" stroke="#9a7a52" strokeWidth="1.1" />
-                <circle cx="20" cy="20" r="2.2" fill="#c08a45" />
-              </svg>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/logo-mascot.svg"
+                alt="여섯소리 마스코트"
+                className="h-10 w-auto"
+              />
               <span className="font-serif text-lg font-bold text-bg">여섯소리</span>
             </div>
             <p className="text-sm leading-relaxed text-[#a99a86]">

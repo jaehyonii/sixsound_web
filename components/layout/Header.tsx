@@ -11,18 +11,6 @@ const NAV = [
   { href: "/members", label: "부원 소개" },
 ];
 
-function Mark({ className }: { className?: string }) {
-  // 여섯소리 심볼 — 울림통의 동심원.
-  return (
-    <svg viewBox="0 0 40 40" fill="none" aria-hidden="true" className={className}>
-      <circle cx="20" cy="20" r="18.5" stroke="#8a5a2b" strokeWidth="1.4" />
-      <circle cx="20" cy="20" r="12.5" stroke="#c08a45" strokeWidth="1.1" />
-      <circle cx="20" cy="20" r="6.5" stroke="#8a5a2b" strokeWidth="1.1" />
-      <circle cx="20" cy="20" r="2.2" fill="#6d451f" />
-    </svg>
-  );
-}
-
 export function Header() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -33,8 +21,13 @@ export function Header() {
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-bg/85 backdrop-blur-md backdrop-saturate-150">
       <div className="mx-auto flex h-[72px] max-w-6xl items-center justify-between px-5 lg:px-10">
-        <Link href="/" className="flex items-center gap-3">
-          <Mark className="h-[26px] w-[26px]" />
+        <Link href="/" className="flex items-center gap-2.5">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/logo-mascot.svg"
+            alt="여섯소리 마스코트"
+            className="h-10 w-auto"
+          />
           <span className="font-serif text-[19px] font-bold tracking-tight text-ink">
             여섯소리
           </span>
