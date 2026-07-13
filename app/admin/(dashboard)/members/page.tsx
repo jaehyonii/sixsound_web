@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 
 export default async function AdminMembersPage() {
   const members = await prisma.member.findMany({
-    orderBy: [{ generation: "asc" }, { sortOrder: "asc" }, { name: "asc" }],
+    orderBy: [{ generation: "asc" }, { name: "asc" }],
   });
 
   return (
@@ -35,17 +35,7 @@ export default async function AdminMembersPage() {
                 </span>
                 <span className="flex-1 truncate font-medium text-ink">
                   {m.name}
-                  {m.part ? (
-                    <span className="ml-2 text-sm font-normal text-muted">
-                      {m.part}
-                    </span>
-                  ) : null}
                 </span>
-                {!m.isActive && (
-                  <span className="rounded bg-neutral-100 px-2 py-0.5 text-xs text-muted">
-                    졸업/OB
-                  </span>
-                )}
               </Link>
             </li>
           ))}

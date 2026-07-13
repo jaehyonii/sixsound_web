@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
-import { bool, optStr, saveUpload, str, toInt } from "./util";
+import { optStr, saveUpload, str, toInt } from "./util";
 
 async function requireAuth() {
   const session = await auth();
@@ -23,10 +23,7 @@ export async function createMember(formData: FormData) {
     data: {
       name: str(formData.get("name")),
       generation: toInt(formData.get("generation")),
-      part: optStr(formData.get("part")),
       bio: optStr(formData.get("bio")),
-      isActive: bool(formData.get("isActive")),
-      sortOrder: toInt(formData.get("sortOrder")),
       photoUrl,
     },
   });
@@ -42,10 +39,7 @@ export async function updateMember(id: string, formData: FormData) {
     data: {
       name: str(formData.get("name")),
       generation: toInt(formData.get("generation")),
-      part: optStr(formData.get("part")),
       bio: optStr(formData.get("bio")),
-      isActive: bool(formData.get("isActive")),
-      sortOrder: toInt(formData.get("sortOrder")),
       ...(photoUrl ? { photoUrl } : {}),
     },
   });

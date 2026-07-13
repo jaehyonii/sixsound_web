@@ -77,11 +77,23 @@ model Member {
   id         String   @id @default(cuid())
   name       String
   generation Int // 기수
-  part       String? // 역할/파트
   bio        String?
   photoUrl   String?
-  isActive   Boolean  @default(true) // 활동 / 졸업 구분
-  sortOrder  Int      @default(0)
+  executives Executive[] // 이 부원이 맡은 집행부 직책들
+  createdAt  DateTime @default(now())
+
+  @@index([generation])
+}
+
+/// 집행부(기수별 임원). 직책(title)은 자유 입력, 인물은 부원(Member)에 연결한다.
+/// generation = 집행부 임기 기수(부원 본인의 입부 기수와 다를 수 있음).
+model Executive {
+  id         String   @id @default(cuid())
+  generation Int // 집행부 임기 기수
+  title      String // 직책 (회장·총무 등 자유 입력)
+  memberId   String
+  member     Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  sortOrder  Int      @default(0) // 같은 기수 내 표시 순서 (회장=0 …)
   createdAt  DateTime @default(now())
 
   @@index([generation])
