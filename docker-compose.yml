@@ -31,7 +31,7 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER:-sixsound}:${POSTGRES_PASSWORD:-sixsound}@sixsound-db:5432/${POSTGRES_DB:-sixsound}?schema=public
       AUTH_SECRET: ${AUTH_SECRET}
       AUTH_TRUST_HOST: "true"
-      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@sixsound.org}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@sixsound.kr}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-changeme1234}
       ADMIN_NAME: ${ADMIN_NAME:-운영진}
     ports:
