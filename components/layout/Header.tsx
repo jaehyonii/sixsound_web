@@ -10,6 +10,7 @@ const NAV = [
   { href: "/notices", label: "공지 / 일정" },
   { href: "/members", label: "부원 소개" },
   { href: "/executives", label: "집행부" },
+  { href: "/ledger", label: "장부" },
 ];
 
 export function Header() {

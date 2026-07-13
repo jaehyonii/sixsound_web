@@ -49,3 +49,13 @@ export function formatDateDot(date: Date | string): string {
 export function formatMonthDay(date: Date | string): string {
   return toDateInput(date).slice(5).replace("-", ".");
 }
+
+// 장부 금액. 1234567 → "1,234,567원"
+export function formatWon(amount: number): string {
+  return `${amount.toLocaleString("ko-KR")}원`;
+}
+
+// 부호 있는 금액. 지출이면 앞에 "−"를 붙인다.
+export function formatSignedWon(amount: number, isExpense: boolean): string {
+  return `${isExpense ? "−" : "+"}${formatWon(amount)}`;
+}

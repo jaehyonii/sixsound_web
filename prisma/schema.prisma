@@ -105,3 +105,28 @@ model AboutContent {
   body      String   @default("")
   updatedAt DateTime @updatedAt
 }
+
+/// 장부 항목 종류
+enum LedgerType {
+  INCOME // 수입 (회비, 후원 등)
+  EXPENSE // 지출
+}
+
+/// 회계 장부. 기입·수정은 운영진만, 공개 페이지에는 내역과 잔액만 노출한다.
+/// receiptUrl(영수증 사진)은 관리자 전용이며 공개 페이지에서 절대 조회하지 않는다.
+model LedgerEntry {
+  id          String     @id @default(cuid())
+  occurredAt  DateTime // 거래 일자
+  type        LedgerType
+  description String // 내역 (예: 동아리방 비품 구입)
+  amount      Int // 금액(원). 항상 양수로 저장하고 부호는 type으로 판단한다.
+  category    String? // 분류 (비품/식비/공연/회비 …) 자유 입력
+  vendor      String? // 상호 (영수증에서 자동 추출)
+  method      String? // 결제수단 (카드/현금/이체)
+  note        String? // 비고
+  receiptUrl  String? // 영수증 사진 경로 (관리자 전용)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([occurredAt])
+}

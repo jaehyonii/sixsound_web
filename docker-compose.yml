@@ -34,6 +34,9 @@ services:
       ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@sixsound.kr}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-changeme1234}
       ADMIN_NAME: ${ADMIN_NAME:-운영진}
+      # CLOVA OCR (영수증 자동 인식). 비우면 자동 인식만 비활성화된다.
+      CLOVA_OCR_INVOKE_URL: ${CLOVA_OCR_INVOKE_URL:-}
+      CLOVA_OCR_SECRET: ${CLOVA_OCR_SECRET:-}
     ports:
       # 디버그용으로 호스트 로컬에만 노출(외부 노출은 Caddy가 담당). 3000은 다른 앱이 점유.
       - "127.0.0.1:${APP_PORT:-3100}:3000"
@@ -46,6 +49,8 @@ services:
     volumes:
       # 업로드 이미지 영속화
       - uploads:/app/public/uploads
+      # 영수증(비공개). public/ 밖이라 정적 서빙되지 않고 인증 라우트로만 읽힌다.
+      - receipts:/app/private-uploads
 
 networks:
   # be(SyncLog) compose가 만든 네트워크. Caddy(be-caddy-1)가 여기 붙어 있다.
@@ -56,3 +61,4 @@ networks:
 volumes:
   db_data:
   uploads:
+  receipts:

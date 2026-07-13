@@ -9,6 +9,7 @@ const NAV = [
   { href: "/admin/notices", label: "공지·일정" },
   { href: "/admin/members", label: "부원" },
   { href: "/admin/executives", label: "집행부" },
+  { href: "/admin/ledger", label: "장부" },
   { href: "/admin/about", label: "동아리 소개" },
 ];
 

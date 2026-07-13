@@ -1,7 +1,11 @@
 import "server-only";
-import { writeFile, mkdir } from "node:fs/promises";
+import { writeFile, mkdir, unlink } from "node:fs/promises";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
+
+// 비공개 업로드 보관함. public/ 바깥이라 정적 서빙되지 않는다.
+// 영수증처럼 로그인한 운영진만 봐야 하는 파일을 여기에 둔다.
+const PRIVATE_DIR = path.join(process.cwd(), "private-uploads");
 
 /** 폼 문자열 값 (트림). */
 export function str(value: FormDataEntryValue | null): string {
@@ -50,4 +54,35 @@ export async function saveUpload(
   const buffer = Buffer.from(await file.arrayBuffer());
   await writeFile(path.join(dir, name), buffer);
   return `/uploads/${name}`;
+}
+
+/**
+ * 비공개 파일로 저장하고 **파일명만** 반환한다(경로 아님).
+ * public/ 밖이라 URL로 직접 접근할 수 없고, 인증된 라우트를 통해서만 읽힌다.
+ */
+export async function savePrivateUpload(file: File): Promise<string | null> {
+  if (!file.size) return null;
+  const ext = path.extname(file.name).toLowerCase() || ".jpg";
+  const name = `${randomUUID()}${ext}`;
+  await mkdir(PRIVATE_DIR, { recursive: true });
+  const buffer = Buffer.from(await file.arrayBuffer());
+  await writeFile(path.join(PRIVATE_DIR, name), buffer);
+  return name;
+}
+
+/** 비공개 파일의 절대 경로. basename만 취해 경로 조작(../)을 막는다. */
+export function privateUploadPath(name: string): string {
+  return path.join(PRIVATE_DIR, path.basename(name));
+}
+
+/** 비공개 파일 삭제. 이미 없으면 조용히 넘어간다. */
+export async function deletePrivateUpload(
+  name: string | null | undefined,
+): Promise<void> {
+  if (!name) return;
+  try {
+    await unlink(privateUploadPath(name));
+  } catch {
+    // 파일이 이미 없거나 접근 불가 — 삭제 흐름을 막지 않는다.
+  }
 }

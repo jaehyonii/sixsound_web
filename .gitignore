@@ -47,3 +47,6 @@ next-env.d.ts
 
 # OMC 운영 상태(비추적)
 .omc/
+
+# 영수증 등 비공개 업로드(로컬)
+/private-uploads
