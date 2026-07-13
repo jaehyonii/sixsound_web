@@ -2,6 +2,23 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { reorderExecutives } from "@/lib/actions/executives";
 
 type Executive = {
@@ -11,92 +28,129 @@ type Executive = {
   member: { name: string; generation: number };
 };
 
-// 집행부 목록. 같은 기수 안에서 행을 드래그해 표시 순서를 바꾸면 즉시 저장한다.
+// 집행부 목록. ⠿ 핸들을 잡아 같은 기수 안에서 순서를 바꾸면 즉시 저장한다.
+// PointerSensor를 써서 마우스(PC)·터치(모바일) 모두 동작하고, 키보드로도 정렬 가능하다.
+// 핸들에만 드래그를 걸어 모바일에서 페이지 스크롤과 충돌하지 않게 한다.
 export function ExecutiveList({ executives }: { executives: Executive[] }) {
   const [items, setItems] = useState(executives);
-  const [dragId, setDragId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+
+  const sensors = useSensors(
+    // 5px 이상 움직여야 드래그로 인식 → 탭/클릭이 드래그로 오인되지 않는다.
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
+  );
 
   const gens = Array.from(new Set(items.map((e) => e.generation))).sort(
     (a, b) => b - a,
   );
 
-  function handleDrop(targetId: string) {
-    const sourceId = dragId;
-    setDragId(null);
-    if (!sourceId || sourceId === targetId) return;
+  function handleDragEnd(gen: number) {
+    return (event: DragEndEvent) => {
+      const { active, over } = event;
+      if (!over || active.id === over.id) return;
 
-    const from = items.findIndex((e) => e.id === sourceId);
-    const to = items.findIndex((e) => e.id === targetId);
-    if (from < 0 || to < 0) return;
-    // 기수를 넘나드는 이동은 막는다(기수는 드래그가 아니라 수정 화면에서 바꾼다).
-    if (items[from].generation !== items[to].generation) return;
+      const group = items.filter((e) => e.generation === gen);
+      const from = group.findIndex((e) => e.id === active.id);
+      const to = group.findIndex((e) => e.id === over.id);
+      if (from < 0 || to < 0) return;
 
-    const next = [...items];
-    const [moved] = next.splice(from, 1);
-    next.splice(to, 0, moved);
-    setItems(next);
+      const reordered = arrayMove(group, from, to);
+      // 다른 기수 그룹은 그대로 두고 이 기수만 새 순서로 교체
+      setItems(
+        gens.flatMap((g) =>
+          g === gen ? reordered : items.filter((e) => e.generation === g),
+        ),
+      );
 
-    const orderedIds = next
-      .filter((e) => e.generation === moved.generation)
-      .map((e) => e.id);
-
-    setSaving(true);
-    reorderExecutives(orderedIds).finally(() => setSaving(false));
+      setSaving(true);
+      reorderExecutives(reordered.map((e) => e.id)).finally(() =>
+        setSaving(false),
+      );
+    };
   }
 
   return (
     <div className="space-y-6">
       <p className="text-xs text-muted">
-        행을 드래그해 같은 기수 안에서 순서를 바꿀 수 있습니다.
+        ⠿ 를 잡고 끌어 같은 기수 안에서 순서를 바꿀 수 있습니다. (PC·모바일 모두)
         {saving && <span className="ml-1 text-brand">저장 중…</span>}
       </p>
 
-      {gens.map((gen) => (
-        <div key={gen}>
-          <h2 className="mb-2 text-sm font-semibold text-accent">{gen}기</h2>
-          <ul className="divide-y divide-line overflow-hidden rounded-xl border border-line bg-surface">
-            {items
-              .filter((e) => e.generation === gen)
-              .map((e) => (
-                <li
-                  key={e.id}
-                  draggable
-                  onDragStart={() => setDragId(e.id)}
-                  onDragOver={(event) => event.preventDefault()}
-                  onDrop={() => handleDrop(e.id)}
-                  onDragEnd={() => setDragId(null)}
-                  className={`flex cursor-grab items-center gap-3 px-4 py-3 hover:bg-bg active:cursor-grabbing ${
-                    dragId === e.id ? "opacity-40" : ""
-                  }`}
-                >
-                  <span
-                    aria-hidden
-                    className="select-none text-base leading-none text-muted2"
-                  >
-                    ⠿
-                  </span>
-                  <span className="w-24 shrink-0 truncate text-sm font-semibold text-ink">
-                    {e.title}
-                  </span>
-                  <span className="flex-1 truncate text-muted">
-                    {e.member.name}
-                    <span className="ml-2 text-xs text-muted2">
-                      {e.member.generation}기
-                    </span>
-                  </span>
-                  <Link
-                    href={`/admin/executives/${e.id}`}
-                    draggable={false}
-                    className="shrink-0 text-sm text-muted hover:text-brand"
-                  >
-                    수정
-                  </Link>
-                </li>
-              ))}
-          </ul>
-        </div>
-      ))}
+      {gens.map((gen) => {
+        const group = items.filter((e) => e.generation === gen);
+        return (
+          <div key={gen}>
+            <h2 className="mb-2 text-sm font-semibold text-accent">{gen}기</h2>
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd(gen)}
+            >
+              <SortableContext
+                items={group.map((e) => e.id)}
+                strategy={verticalListSortingStrategy}
+              >
+                <ul className="overflow-hidden rounded-xl border border-line">
+                  {group.map((e) => (
+                    <SortableRow key={e.id} executive={e} />
+                  ))}
+                </ul>
+              </SortableContext>
+            </DndContext>
+          </div>
+        );
+      })}
     </div>
+  );
+}
+
+function SortableRow({ executive }: { executive: Executive }) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: executive.id });
+
+  return (
+    <li
+      ref={setNodeRef}
+      style={{ transform: CSS.Transform.toString(transform), transition }}
+      className={`flex items-center gap-3 border-b border-line-soft bg-surface px-4 py-3 last:border-b-0 ${
+        isDragging ? "relative z-10 opacity-90 shadow-md" : ""
+      }`}
+    >
+      <button
+        type="button"
+        aria-label="순서 변경 핸들"
+        {...attributes}
+        {...listeners}
+        // touch-action: none 이어야 모바일에서 스크롤 대신 드래그가 잡힌다.
+        style={{ touchAction: "none" }}
+        className="cursor-grab select-none px-1 py-2 text-base leading-none text-muted2 active:cursor-grabbing"
+      >
+        ⠿
+      </button>
+      <span className="w-24 shrink-0 truncate text-sm font-semibold text-ink">
+        {executive.title}
+      </span>
+      <span className="flex-1 truncate text-muted">
+        {executive.member.name}
+        <span className="ml-2 text-xs text-muted2">
+          {executive.member.generation}기
+        </span>
+      </span>
+      <Link
+        href={`/admin/executives/${executive.id}`}
+        className="shrink-0 text-sm text-muted hover:text-brand"
+      >
+        수정
+      </Link>
+    </li>
   );
 }

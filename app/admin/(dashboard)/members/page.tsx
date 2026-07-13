@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 
 export default async function AdminMembersPage() {
   const members = await prisma.member.findMany({
-    orderBy: [{ generation: "asc" }, { name: "asc" }],
+    orderBy: [{ generation: "desc" }, { name: "asc" }],
   });
 
   return (
