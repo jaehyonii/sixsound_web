@@ -42,7 +42,6 @@ export default async function EditExecutivePage({
           generation: executive.generation,
           title: executive.title,
           memberId: executive.memberId,
-          sortOrder: executive.sortOrder,
         }}
         submitLabel="집행부 저장"
       />

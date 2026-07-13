@@ -6,7 +6,6 @@ type ExecutiveDefaults = {
   generation: number;
   title: string;
   memberId: string;
-  sortOrder: number;
 };
 
 export function ExecutiveForm({
@@ -62,19 +61,12 @@ export function ExecutiveForm({
             ))}
           </select>
         </div>
-        <div>
-          <label className={labelClass}>정렬 순서</label>
-          <input
-            name="sortOrder"
-            type="number"
-            defaultValue={defaults?.sortOrder ?? 0}
-            className={inputClass}
-          />
-          <p className="mt-1 text-xs text-muted">
-            작을수록 위. 회장=0, 부회장=1 …
-          </p>
-        </div>
       </div>
+
+      <p className="text-xs text-muted">
+        표시 순서는 집행부 목록에서 드래그로 바꿉니다. 새로 등록하면 해당 기수의 맨
+        아래에 추가됩니다.
+      </p>
 
       <button type="submit" className={btnPrimary}>
         {submitLabel}
