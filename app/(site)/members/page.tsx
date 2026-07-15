@@ -21,7 +21,7 @@ export default async function MembersPage() {
       <header className="mb-8">
         <h1 className="text-3xl font-bold text-ink">부원 소개</h1>
         <p className="mt-2 text-muted">
-          기수별로 함께하는 사람들입니다. 이름을 선택하면 사진과 소개를 볼 수 있어요.
+          기수를 눌러 부원 목록을 펼쳐 보세요. 이름을 선택하면 사진과 소개가 나옵니다.
         </p>
       </header>
 

@@ -10,10 +10,10 @@ type Member = {
   photoUrl: string | null;
 };
 
-// 부원 목록을 사진 없이 기수별 세로 목록으로 보여주고,
-// 이름을 선택하면 사진 + 상세 소개를 보여준다.
-// 데스크톱: 좌측 목록 + 우측 상세(고정). 모바일: 목록 + 선택 시 하단 시트.
+// 기수별 아코디언. 기본은 기수만 접혀 있고, 기수를 누르면 그 기수 부원이 펼쳐진다.
+// 다시 누르면 접힌다. 이름을 누르면 사진·소개 상세가 뜬다.
 export function MembersBrowser({ members }: { members: Member[] }) {
+  const [expanded, setExpanded] = useState<Set<number>>(new Set());
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const selected = members.find((m) => m.id === selectedId) ?? null;
 
@@ -26,61 +26,87 @@ export function MembersBrowser({ members }: { members: Member[] }) {
   }
   const gens = Array.from(byGen.keys()).sort((a, b) => b - a);
 
-  // 데스크톱 패널은 선택 전이라도 첫 부원을 미리 보여준다.
-  const desktopMember = selected ?? members[0];
+  function toggle(gen: number) {
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(gen)) next.delete(gen);
+      else next.add(gen);
+      return next;
+    });
+  }
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[minmax(0,300px)_1fr]">
-      {/* 기수별 세로 목록 */}
-      <div className="space-y-6">
-        {gens.map((gen) => (
-          <div key={gen}>
-            <h2 className="mb-2 font-accent text-sm font-semibold text-accent italic">
-              {gen}기
-            </h2>
-            <ul className="overflow-hidden rounded-xl border border-line bg-surface">
-              {byGen.get(gen)!.map((m) => (
-                <li key={m.id}>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedId(m.id)}
-                    className={`flex w-full items-center justify-between border-b border-line-soft px-4 py-3 text-left text-[15px] transition-colors last:border-b-0 hover:bg-bg ${
-                      selectedId === m.id
-                        ? "bg-bg font-semibold text-brand"
-                        : "text-ink"
-                    }`}
-                  >
-                    <span className="truncate">{m.name}</span>
-                    <span className="font-accent text-muted2">→</span>
-                  </button>
-                </li>
-              ))}
-            </ul>
+    <div className="mx-auto max-w-2xl space-y-2.5">
+      {gens.map((gen) => {
+        const open = expanded.has(gen);
+        const group = byGen.get(gen)!;
+        return (
+          <div
+            key={gen}
+            className="overflow-hidden rounded-xl border border-line bg-surface"
+          >
+            <button
+              type="button"
+              onClick={() => toggle(gen)}
+              aria-expanded={open}
+              className="flex w-full items-center justify-between px-5 py-4 text-left transition-colors hover:bg-bg"
+            >
+              <span className="font-serif text-lg font-bold text-ink">
+                {gen}기
+              </span>
+              <span className="flex items-center gap-3 text-sm text-muted2">
+                <span>{group.length}명</span>
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className={`transition-transform ${open ? "rotate-180" : ""}`}
+                  aria-hidden
+                >
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
+              </span>
+            </button>
+
+            {open && (
+              <div className="border-t border-line-soft p-3">
+                <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3">
+                  {group.map((m) => (
+                    <button
+                      key={m.id}
+                      type="button"
+                      onClick={() => setSelectedId(m.id)}
+                      className="truncate rounded-lg px-3 py-2 text-left text-[15px] text-ink transition-colors hover:bg-bg hover:text-brand"
+                    >
+                      {m.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
-        ))}
-      </div>
+        );
+      })}
 
-      {/* 데스크톱 상세 패널 (고정) */}
-      <div className="hidden lg:block">
-        <div className="sticky top-24">
-          <MemberDetail member={desktopMember} />
-        </div>
-      </div>
-
-      {/* 모바일 상세 (하단 시트) */}
+      {/* 부원 상세 (모달) */}
       {selected && (
         <div
-          className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 lg:hidden"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
           onClick={() => setSelectedId(null)}
         >
           <div
-            className="max-h-[85vh] w-full overflow-y-auto rounded-t-2xl bg-bg p-6 pb-10"
+            className="w-full max-w-sm"
             onClick={(e) => e.stopPropagation()}
           >
             <button
               type="button"
               onClick={() => setSelectedId(null)}
-              className="mb-4 ml-auto block text-sm text-muted"
+              className="mb-2 ml-auto block text-sm text-white/90"
             >
               닫기 ✕
             </button>
