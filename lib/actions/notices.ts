@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
-import { bool, optDate, str } from "./util";
+import { bool, str } from "./util";
 
 async function requireAuth() {
   const session = await auth();
@@ -23,7 +23,6 @@ export async function createNotice(formData: FormData) {
     data: {
       title: str(formData.get("title")),
       content: str(formData.get("content")),
-      eventDate: optDate(formData.get("eventDate")),
       isPinned: bool(formData.get("isPinned")),
     },
   });
@@ -38,7 +37,6 @@ export async function updateNotice(id: string, formData: FormData) {
     data: {
       title: str(formData.get("title")),
       content: str(formData.get("content")),
-      eventDate: optDate(formData.get("eventDate")),
       isPinned: bool(formData.get("isPinned")),
     },
   });

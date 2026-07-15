@@ -171,7 +171,7 @@ export default async function HomePage() {
         <div className="grid gap-7 lg:grid-cols-[1.25fr_1fr]">
           <div className="rounded-2xl border border-line bg-surface px-8 py-7">
             <div className="mb-4 flex items-center justify-between">
-              <h3 className="text-[19px] font-bold text-ink">다가오는 일정 · 공지</h3>
+              <h3 className="text-[19px] font-bold text-ink">공지</h3>
               <Link
                 href="/notices"
                 className="text-sm text-muted transition-colors hover:text-brand"
@@ -190,7 +190,7 @@ export default async function HomePage() {
                   href={`/notices/${n.id}`}
                   className="flex items-center gap-2.5 border-t border-line-soft py-[15px]"
                 >
-                  {n.isPinned ? (
+                  {n.isPinned && (
                     <span className="inline-flex shrink-0 items-center gap-1 rounded-md bg-brand px-2 py-0.5 text-[11px] font-semibold text-white">
                       <svg
                         width="10"
@@ -207,16 +207,12 @@ export default async function HomePage() {
                       </svg>
                       고정
                     </span>
-                  ) : n.eventDate ? (
-                    <span className="shrink-0 rounded-md bg-accent/10 px-2 py-0.5 text-[11px] font-semibold text-accent">
-                      일정
-                    </span>
-                  ) : null}
+                  )}
                   <span className="flex-1 truncate text-[15px] font-medium text-ink">
                     {n.title}
                   </span>
                   <span className="shrink-0 text-[13px] text-muted2 tabular-nums">
-                    {formatMonthDay(n.eventDate ?? n.createdAt)}
+                    {formatMonthDay(n.createdAt)}
                   </span>
                 </Link>
               ))

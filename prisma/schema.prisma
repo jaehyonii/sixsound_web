@@ -61,15 +61,28 @@ model Video {
 
 /// 공지사항 / 일정
 model Notice {
-  id        String    @id @default(cuid())
+  id        String   @id @default(cuid())
   title     String
   content   String
-  eventDate DateTime? // 일정이 있는 공지면 날짜
-  isPinned  Boolean   @default(false)
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  isPinned  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([createdAt])
+}
+
+/// 일정(캘린더에 표시). 공지와 분리해 날짜 기반으로 관리한다.
+model Event {
+  id          String    @id @default(cuid())
+  title       String
+  startAt     DateTime // 일정 날짜 (KST 정오로 저장)
+  endAt       DateTime? // 여러 날 일정의 종료일 (선택)
+  location    String? // 장소
+  description String? // 설명
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([startAt])
 }
 
 /// 부원 (기수별)

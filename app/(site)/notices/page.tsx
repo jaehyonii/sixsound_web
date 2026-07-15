@@ -2,7 +2,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { formatDate } from "@/lib/format";
 
-export const metadata = { title: "공지 · 일정" };
+export const metadata = { title: "공지" };
 export const dynamic = "force-dynamic";
 
 export default async function NoticesPage() {
@@ -13,8 +13,8 @@ export default async function NoticesPage() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-12">
       <header className="mb-8">
-        <h1 className="text-3xl font-bold text-ink">공지 · 일정</h1>
-        <p className="mt-2 text-muted">연습 일정과 공연 소식을 확인하세요.</p>
+        <h1 className="text-3xl font-bold text-ink">공지</h1>
+        <p className="mt-2 text-muted">여섯소리의 소식을 확인하세요.</p>
       </header>
 
       {notices.length === 0 ? (
@@ -38,7 +38,7 @@ export default async function NoticesPage() {
                   {n.title}
                 </span>
                 <span className="shrink-0 text-sm text-muted">
-                  {formatDate(n.eventDate ?? n.createdAt)}
+                  {formatDate(n.createdAt)}
                 </span>
               </Link>
             </li>

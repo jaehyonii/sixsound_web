@@ -7,7 +7,8 @@ import { useState } from "react";
 const NAV = [
   { href: "/about", label: "소개" },
   { href: "/archive", label: "연주회 아카이브" },
-  { href: "/notices", label: "공지 / 일정" },
+  { href: "/notices", label: "공지" },
+  { href: "/schedule", label: "일정" },
   { href: "/members", label: "부원 소개" },
   { href: "/executives", label: "집행부" },
   { href: "/ledger", label: "장부" },

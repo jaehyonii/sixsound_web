@@ -40,11 +40,7 @@ export default async function NoticeDetailPage({
           )}
           <h1 className="text-2xl font-bold text-ink">{notice.title}</h1>
         </div>
-        <p className="mt-2 text-sm text-muted">
-          {notice.eventDate
-            ? `일정: ${formatDate(notice.eventDate)}`
-            : formatDate(notice.createdAt)}
-        </p>
+        <p className="mt-2 text-sm text-muted">{formatDate(notice.createdAt)}</p>
       </header>
 
       <div className="whitespace-pre-wrap leading-relaxed text-ink">

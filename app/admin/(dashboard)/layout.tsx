@@ -6,7 +6,8 @@ import { logoutAction } from "@/lib/auth-actions";
 const NAV = [
   { href: "/admin", label: "대시보드", exact: true },
   { href: "/admin/concerts", label: "연주회·영상" },
-  { href: "/admin/notices", label: "공지·일정" },
+  { href: "/admin/notices", label: "공지" },
+  { href: "/admin/events", label: "일정" },
   { href: "/admin/members", label: "부원" },
   { href: "/admin/executives", label: "집행부" },
   { href: "/admin/ledger", label: "장부" },

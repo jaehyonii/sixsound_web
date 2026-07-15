@@ -10,7 +10,7 @@ export default async function AdminNoticesPage() {
   return (
     <div>
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-ink">공지 · 일정</h1>
+        <h1 className="text-2xl font-bold text-ink">공지</h1>
         <Link
           href="/admin/notices/new"
           className="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark"
@@ -40,7 +40,7 @@ export default async function AdminNoticesPage() {
                   {n.title}
                 </span>
                 <span className="shrink-0 text-sm text-muted">
-                  {formatDate(n.eventDate ?? n.createdAt)}
+                  {formatDate(n.createdAt)}
                 </span>
               </Link>
             </li>

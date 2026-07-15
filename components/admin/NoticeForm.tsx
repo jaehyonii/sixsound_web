@@ -1,10 +1,8 @@
 import { inputClass, labelClass, btnPrimary, card } from "./styles";
-import { toDateInput } from "@/lib/format";
 
 type NoticeDefaults = {
   title: string;
   content: string;
-  eventDate: Date | string | null;
   isPinned: boolean;
 };
 
@@ -40,26 +38,15 @@ export function NoticeForm({
         />
       </div>
 
-      <div className="grid items-end gap-4 sm:grid-cols-2">
-        <div>
-          <label className={labelClass}>일정 날짜 (선택)</label>
-          <input
-            name="eventDate"
-            type="date"
-            defaultValue={toDateInput(defaults?.eventDate)}
-            className={inputClass}
-          />
-        </div>
-        <label className="flex items-center gap-2 pb-2 text-sm font-medium text-ink">
-          <input
-            name="isPinned"
-            type="checkbox"
-            defaultChecked={defaults?.isPinned}
-            className="h-4 w-4"
-          />
-          상단 고정 (공지)
-        </label>
-      </div>
+      <label className="flex items-center gap-2 text-sm font-medium text-ink">
+        <input
+          name="isPinned"
+          type="checkbox"
+          defaultChecked={defaults?.isPinned}
+          className="h-4 w-4"
+        />
+        상단 고정
+      </label>
 
       <button type="submit" className={btnPrimary}>
         {submitLabel}
