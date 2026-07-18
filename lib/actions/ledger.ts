@@ -2,13 +2,17 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import type { LedgerType } from "@prisma/client";
+import { Prisma, type LedgerType } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
 import { deletePrivateUpload, optStr, str, toInt } from "./util";
 
 // Postgres int4 상한(2,147,483,647) 아래로 묶는다. 자릿수 실수로 DB가 터지지 않게.
 const MAX_AMOUNT = 2_000_000_000;
+
+// /api/ledger/ocr 가 만들어 준 파일명(uuid.확장자) 형태만 받는다.
+const RECEIPT_NAME =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.[a-z0-9]{2,5}$/i;
 
 async function requireAuth() {
   const session = await auth();
@@ -20,15 +24,25 @@ function refresh() {
   revalidatePath("/ledger");
 }
 
-// /api/ledger/ocr 가 만들어 준 파일명(uuid.확장자) 형태만 받는다.
-// 폼이 보내는 문자열을 그대로 믿으면 다른 항목의 영수증을 가리키게 만들 수 있다.
-const RECEIPT_NAME =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.[a-z0-9]{2,5}$/i;
-
 function readReceiptPath(formData: FormData): string | null {
   const value = optStr(formData.get("receiptPath"));
   if (!value) return null;
   return RECEIPT_NAME.test(value) ? value : null;
+}
+
+// 폼의 hidden JSON(품목·금액 상세)을 안전하게 파싱한다. 비면 JsonNull.
+function readJson(formData: FormData, key: string): Prisma.InputJsonValue | typeof Prisma.JsonNull {
+  const raw = optStr(formData.get(key));
+  if (!raw) return Prisma.JsonNull;
+  try {
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed) && parsed.length > 0) {
+      return parsed as Prisma.InputJsonValue;
+    }
+  } catch {
+    // 손상된 값은 무시
+  }
+  return Prisma.JsonNull;
 }
 
 /**
@@ -45,7 +59,6 @@ function readFields(formData: FormData) {
     throw new Error("금액이 너무 큽니다. 자릿수를 확인해 주세요.");
   }
 
-  // 날짜가 비었거나 형식이 틀리면 '오늘'로 조용히 대체하지 않고 거부한다.
   const dateInput = str(formData.get("occurredAt"));
   if (!/^\d{4}-\d{2}-\d{2}$/.test(dateInput)) {
     throw new Error("거래일을 올바르게 입력해 주세요.");
@@ -54,6 +67,10 @@ function readFields(formData: FormData) {
   if (Number.isNaN(occurredAt.getTime())) {
     throw new Error("거래일을 올바르게 입력해 주세요.");
   }
+
+  // 시각 "HH:MM" (선택). 형식이 틀리면 저장하지 않는다.
+  const timeInput = str(formData.get("paidTime"));
+  const paidTime = /^\d{2}:\d{2}$/.test(timeInput) ? timeInput : null;
 
   return {
     occurredAt,
@@ -65,13 +82,15 @@ function readFields(formData: FormData) {
     category: optStr(formData.get("category")),
     vendor: optStr(formData.get("vendor")),
     method: optStr(formData.get("method")),
+    paidTime,
     note: optStr(formData.get("note")),
+    items: readJson(formData, "items"),
+    amountDetail: readJson(formData, "amountDetail"),
   };
 }
 
 export async function createLedgerEntry(formData: FormData) {
   await requireAuth();
-  // 사진 자체는 /api/ledger/ocr 이 이미 저장했다. 여기엔 파일명만 넘어온다.
   const receiptUrl = readReceiptPath(formData);
   await prisma.ledgerEntry.create({
     data: { ...readFields(formData), receiptUrl },
@@ -92,12 +111,10 @@ export async function updateLedgerEntry(id: string, formData: FormData) {
     where: { id },
     data: {
       ...readFields(formData),
-      // 새 사진을 올린 경우에만 교체
       ...(newReceipt ? { receiptUrl: newReceipt } : {}),
     },
   });
 
-  // 교체됐으면 옛 파일을 지운다(디스크에 영영 남지 않도록).
   if (newReceipt && existing?.receiptUrl && existing.receiptUrl !== newReceipt) {
     await deletePrivateUpload(existing.receiptUrl);
   }
