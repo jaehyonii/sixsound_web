@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { formatDateDot, formatSignedWon } from "@/lib/format";
 import { summarizeLedger } from "@/lib/ledger";
@@ -44,30 +45,32 @@ export default async function LedgerPage() {
           {entries.map((entry) => {
             const isExpense = entry.type === "EXPENSE";
             return (
-              <li
-                key={entry.id}
-                className="flex items-center gap-3 px-4 py-3.5"
-              >
-                <span className="w-20 shrink-0 text-sm text-muted2 tabular-nums">
-                  {formatDateDot(entry.occurredAt)}
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate font-medium text-ink">
-                    {entry.description}
-                  </span>
-                  {entry.category && (
-                    <span className="block truncate text-xs text-muted2">
-                      {entry.category}
-                    </span>
-                  )}
-                </span>
-                <span
-                  className={`shrink-0 text-right font-semibold tabular-nums ${
-                    isExpense ? "text-red-600" : "text-emerald-600"
-                  }`}
+              <li key={entry.id}>
+                <Link
+                  href={`/ledger/${entry.id}`}
+                  className="flex items-center gap-3 px-4 py-3.5 hover:bg-bg"
                 >
-                  {formatSignedWon(entry.amount, isExpense)}
-                </span>
+                  <span className="w-20 shrink-0 text-sm text-muted2 tabular-nums">
+                    {formatDateDot(entry.occurredAt)}
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate font-medium text-ink">
+                      {entry.description}
+                    </span>
+                    {entry.category && (
+                      <span className="block truncate text-xs text-muted2">
+                        {entry.category}
+                      </span>
+                    )}
+                  </span>
+                  <span
+                    className={`shrink-0 text-right font-semibold tabular-nums ${
+                      isExpense ? "text-red-600" : "text-emerald-600"
+                    }`}
+                  >
+                    {formatSignedWon(entry.amount, isExpense)}
+                  </span>
+                </Link>
               </li>
             );
           })}
